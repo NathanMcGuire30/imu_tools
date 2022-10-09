@@ -48,69 +48,69 @@
 
 namespace imu_tools {
 
-class ComplementaryFilterROS
-{
-  public:
-    ComplementaryFilterROS(const ros::NodeHandle& nh,
-                           const ros::NodeHandle& nh_private);
-    virtual ~ComplementaryFilterROS();
+    class ComplementaryFilterROS {
+    public:
+        ComplementaryFilterROS(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private);
 
-    // Reset the filter to the initial state.
-    void reset();
+        virtual ~ComplementaryFilterROS();
 
-  private:
-    // Convenience typedefs
-    typedef sensor_msgs::Imu ImuMsg;
-    typedef sensor_msgs::MagneticField MagMsg;
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Imu,
-                                                            MagMsg>
-        MySyncPolicy;
-    typedef message_filters::sync_policies::ApproximateTime<ImuMsg, MagMsg>
-        SyncPolicy;
-    typedef message_filters::Synchronizer<SyncPolicy> Synchronizer;
-    typedef message_filters::Subscriber<ImuMsg> ImuSubscriber;
-    typedef message_filters::Subscriber<MagMsg> MagSubscriber;
+        // Reset the filter to the initial state.
+        void reset();
 
-    // ROS-related variables.
-    ros::NodeHandle nh_;
-    ros::NodeHandle nh_private_;
+    private:
+        // Convenience typedefs
+        typedef sensor_msgs::Imu ImuMsg;
+        typedef sensor_msgs::MagneticField MagMsg;
+        typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Imu, MagMsg> MySyncPolicy;
+        typedef message_filters::sync_policies::ApproximateTime<ImuMsg, MagMsg> SyncPolicy;
+        typedef message_filters::Synchronizer<SyncPolicy> Synchronizer;
+        typedef message_filters::Subscriber<ImuMsg> ImuSubscriber;
+        typedef message_filters::Subscriber<MagMsg> MagSubscriber;
 
-    boost::shared_ptr<Synchronizer> sync_;
-    boost::shared_ptr<ImuSubscriber> imu_subscriber_;
-    boost::shared_ptr<MagSubscriber> mag_subscriber_;
+        // ROS-related variables.
+        ros::NodeHandle nh_;
+        ros::NodeHandle nh_private_;
 
-    ros::Publisher imu_publisher_;
-    ros::Publisher rpy_publisher_;
-    ros::Publisher state_publisher_;
-    tf::TransformBroadcaster tf_broadcaster_;
+        boost::shared_ptr<Synchronizer> sync_;
+        boost::shared_ptr<ImuSubscriber> imu_subscriber_;
+        boost::shared_ptr<MagSubscriber> mag_subscriber_;
 
-    // Parameters:
-    bool use_mag_;
-    bool publish_tf_;
-    bool reverse_tf_;
-    double constant_dt_;
-    bool publish_debug_topics_;
-    std::string fixed_frame_;
-    double orientation_variance_;
-    ros::Duration time_jump_threshold_;
+        ros::Publisher imu_publisher_;
+        ros::Publisher rpy_publisher_;
+        ros::Publisher state_publisher_;
+        tf::TransformBroadcaster tf_broadcaster_;
 
-    // State variables:
-    ComplementaryFilter filter_;
-    ros::Time time_prev_;
-    ros::Time last_ros_time_;
-    bool initialized_filter_;
+        // Parameters:
+        bool use_mag_;
+        bool publish_tf_;
+        bool reverse_tf_;
+        double constant_dt_;
+        bool publish_debug_topics_;
+        std::string fixed_frame_;
+        double orientation_variance_;
+        ros::Duration time_jump_threshold_;
 
-    void initializeParams();
-    void imuCallback(const ImuMsg::ConstPtr& imu_msg_raw);
-    void imuMagCallback(const ImuMsg::ConstPtr& imu_msg_raw,
-                        const MagMsg::ConstPtr& mav_msg);
-    void publish(const sensor_msgs::Imu::ConstPtr& imu_msg_raw);
+        // State variables:
+        ComplementaryFilter filter_;
+        ros::Time time_prev_;
+        ros::Time last_ros_time_;
+        bool initialized_filter_;
+        ros::Time last_mag_message_time_;
+        ros::Duration mag_timeout_ = ros::Duration(0.1); //TODO: Make this a parameter
 
-    tf::Quaternion hamiltonToTFQuaternion(double q0, double q1, double q2,
-                                          double q3) const;
-    // Check whether ROS time has jumped back. If so, reset the filter.
-    void checkTimeJump();
-};
+        void initializeParams();
+
+        void imuCallback(const ImuMsg::ConstPtr &imu_msg_raw);
+
+        void imuMagCallback(const ImuMsg::ConstPtr &imu_msg_raw, const MagMsg::ConstPtr &mav_msg);
+
+        void publish(const sensor_msgs::Imu::ConstPtr &imu_msg_raw);
+
+        tf::Quaternion hamiltonToTFQuaternion(double q0, double q1, double q2, double q3) const;
+
+        // Check whether ROS time has jumped back. If so, reset the filter.
+        void checkTimeJump();
+    };
 
 }  // namespace imu_tools
 
