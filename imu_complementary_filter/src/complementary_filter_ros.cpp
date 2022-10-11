@@ -137,7 +137,7 @@ namespace imu_tools {
      * Runs when we get just IMU data
      */
     void ComplementaryFilterROS::imuCallback(const ImuMsg::ConstPtr &imu_msg_raw) {
-        if (ros::Time::now() - last_mag_message_time_ > mag_timeout_) { //Only run this function if we haven't gotten mag data in a while
+        if (ros::Time::now() - last_mag_message_time_ < mag_timeout_) { //Only run this function if we haven't gotten mag data in a while
             return;
         }
 
